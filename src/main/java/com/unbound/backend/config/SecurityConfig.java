@@ -69,7 +69,8 @@ public class SecurityConfig {
                 "/webjars/**",
                 "/api/explore/events",
                 "/api/explore/fests",
-                "/api/events/*/stats" // ✅ Allow event stats public access
+                "/api/events/*/stats", 
+                "/api/events/*/rating"
             ).permitAll()
             .anyRequest().authenticated()
         )
