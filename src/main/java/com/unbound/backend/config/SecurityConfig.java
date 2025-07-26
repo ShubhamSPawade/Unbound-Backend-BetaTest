@@ -58,18 +58,23 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .cors(cors -> {})
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers(
-                    "/api/auth/**",
-                    "/api/health",
-                    "/v3/api-docs/**",          // required by Swagger
-                    "/swagger-ui/**",           // Swagger UI static files
-                    "/swagger-ui.html",         // for old-style access
-                    "/swagger-resources/**",    // optional, if you're using it
-                    "/webjars/**"               // Swagger dependencies
-                ).permitAll()
-                .anyRequest().authenticated()
-            )
+           .authorizeHttpRequests(auth -> auth
+            .requestMatchers(
+                "/api/auth/**",
+                "/api/health",
+                "/v3/api-docs/**",
+                "/swagger-ui/**",
+                "/swagger-ui.html",
+                "/swagger-resources/**",
+                "/webjars/**",
+                "/api/explore/events",
+                "/api/explore/fests",
+                "/api/events/*/stats" // ✅ Allow event stats public access
+            ).permitAll()
+            .anyRequest().authenticated()
+        )
+
+            
             .authenticationProvider(authenticationProvider())
             .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
         return http.build();
