@@ -86,4 +86,13 @@ public class PaymentService {
             }
         }
     }
+
+    // added this code: public getters for Razorpay keys
+    public String getRazorpayKeyId() {
+        return razorpayKeyId;
+    }
+    public String getRazorpayKeySecret() {
+        return razorpayKeySecret;
+    }
+    // end added code
 } 
