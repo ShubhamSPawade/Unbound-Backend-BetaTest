@@ -62,6 +62,34 @@
               }
             }
           ]
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "http://localhost:8081/api/auth/forgot-password", "host": ["http://localhost:8081"], "path": ["api", "auth", "forgot-password"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "http://localhost:8081/api/auth/reset-password", "host": ["http://localhost:8081"], "path": ["api", "auth", "reset-password"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{resetToken}}\",\n  \"newPassword\": \"newpassword123\"\n}"
+            }
+          }
         }
       ]
     },
@@ -234,6 +262,20 @@
               "path": ["api", "events", "{{eventId}}", "rating"]
             }
           }
+        },
+        {
+          "name": "Get Event Poster Audit Logs",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "http://localhost:8081/api/events/{{eventId}}/poster/audit-logs",
+              "host": ["http://localhost:8081"],
+              "path": ["api", "events", "{{eventId}}", "poster", "audit-logs"]
+            }
+          }
         }
       ]
     },
@@ -367,6 +409,20 @@
           }
         },
         {
+          "name": "Download Event Certificate",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "http://localhost:8081/api/student/events/{{eventId}}/certificate",
+              "host": ["http://localhost:8081"],
+              "path": ["api", "student", "events", "{{eventId}}", "certificate"]
+            }
+          }
+        },
+        {
           "name": "College Dashboard Stats",
           "request": {
             "method": "GET",
@@ -391,6 +447,123 @@
               "raw": "http://localhost:8081/api/college/dashboard/events",
               "host": ["http://localhost:8081"],
               "path": ["api", "college", "dashboard", "events"]
+            }
+          }
+        },
+        {
+          "name": "College Dashboard Earnings",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "http://localhost:8081/api/college/dashboard/earnings",
+              "host": ["http://localhost:8081"],
+              "path": ["api", "college", "dashboard", "earnings"]
+            }
+          }
+        },
+        {
+          "name": "College Dashboard Registrations",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "http://localhost:8081/api/college/dashboard/registrations",
+              "host": ["http://localhost:8081"],
+              "path": ["api", "college", "dashboard", "registrations"]
+            }
+          }
+        },
+        {
+          "name": "College Analytics by Fest",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "http://localhost:8081/api/college/dashboard/analytics/by-fest",
+              "host": ["http://localhost:8081"],
+              "path": ["api", "college", "dashboard", "analytics", "by-fest"]
+            }
+          }
+        },
+        {
+          "name": "College Analytics by Date",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "http://localhost:8081/api/college/dashboard/analytics/by-date",
+              "host": ["http://localhost:8081"],
+              "path": ["api", "college", "dashboard", "analytics", "by-date"]
+            }
+          }
+        },
+        {
+          "name": "College Top Events",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "http://localhost:8081/api/college/dashboard/analytics/top-events",
+              "host": ["http://localhost:8081"],
+              "path": ["api", "college", "dashboard", "analytics", "top-events"]
+            }
+          }
+        },
+        {
+          "name": "Approve Certificate",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "http://localhost:8081/api/college/dashboard/events/{{eventId}}/registrations/{{registrationId}}/approve-certificate",
+              "host": ["http://localhost:8081"],
+              "path": ["api", "college", "dashboard", "events", "{{eventId}}", "registrations", "{{registrationId}}", "approve-certificate"]
+            }
+          }
+        },
+        {
+          "name": "Approve All Certificates",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "http://localhost:8081/api/college/dashboard/events/{{eventId}}/registrations/approve-all-certificates",
+              "host": ["http://localhost:8081"],
+              "path": ["api", "college", "dashboard", "events", "{{eventId}}", "registrations", "approve-all-certificates"]
+            }
+          }
+        },
+        {
+          "name": "Approve Certificates for List",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "http://localhost:8081/api/college/dashboard/events/{{eventId}}/registrations/approve-certificates",
+              "host": ["http://localhost:8081"],
+              "path": ["api", "college", "dashboard", "events", "{{eventId}}", "registrations", "approve-certificates"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"registrationIds\": [1, 2, 3]\n}"
             }
           }
         }
@@ -494,6 +667,7 @@
     { "key": "studentId1", "value": "" },
     { "key": "studentId2", "value": "" },
     { "key": "collegeId", "value": "" },
-    { "key": "registrationId", "value": "" }
+    { "key": "registrationId", "value": "" },
+    { "key": "resetToken", "value": "" }
   ]
 } 
