@@ -130,6 +130,8 @@ graph TD;
 ### DTOs
 - **RegisterRequest.java**: Registration payload, with validation.
 - **LoginRequest.java**: Login payload.
+- **ForgotPasswordRequest.java**: Password reset request payload (email).
+- **ResetPasswordRequest.java**: Password reset payload (token, newPassword).
 - **EventRequest.java**: Event creation/update payload.
 - **EventRegistrationRequest.java**: Event registration payload.
 - **FestRequest.java**: Fest creation/update payload.
@@ -255,6 +257,19 @@ graph TD;
 - **Business Logic:**
   - Deletes files, updates event
 
+#### `GET /api/events/{eid}/poster/audit-logs` — getEventPosterAuditLogs
+- **Access:** College only (JWT required)
+- **Description:** Get audit logs for poster moderation actions.
+- **Parameters:**
+  - Path: `eid` (event ID)
+  - Authentication: User (college)
+- **Returns:**
+  - 200: List of audit log entries
+  - 403: If not a college
+  - 404: If event not found or not owned by college
+- **Business Logic:**
+  - Returns poster upload, approval, and rejection history
+
 ---
 
 ### StudentEventController
@@ -297,7 +312,7 @@ graph TD;
 
 #### `GET /api/student/events/{eventId}/certificate` — downloadCertificate
 - **Access:** Student only (JWT required)
-- **Description:** Allows a student to download a PDF certificate for an event, if eligible (registered, paid, event completed, certificate approved).
+- **Description:** Download PDF certificate for an event if eligible (registered, paid, event completed, certificate approved).
 - **Parameters:**
   - Path: `eventId` (event ID)
   - Authentication: User (student)
@@ -307,7 +322,7 @@ graph TD;
   - 404: If student or event not found
 - **Business Logic:**
   - Checks registration, payment, event completion, certificate approval
-  - Generates and returns PDF
+  - Generates and returns PDF certificate
 
 ---
 
@@ -447,6 +462,106 @@ graph TD;
   - 404: If college not found
 - **Business Logic:**
   - Uses `CollegeDashboardService.getCollegeDashboardStats`
+
+#### `GET /api/college/dashboard/earnings` — getTotalEarnings
+- **Access:** College only (JWT required)
+- **Description:** Get total earnings and per-event breakdown for the authenticated college.
+- **Parameters:**
+  - Authentication: User (college)
+- **Returns:**
+  - 200: `{ totalEarnings, breakdown }`
+  - 403: If not a college
+  - 404: If college not found
+- **Business Logic:**
+  - Aggregates paid payments for all events owned by the college
+
+#### `GET /api/college/dashboard/registrations` — getRegistrationStats
+- **Access:** College only (JWT required)
+- **Description:** Get registration stats (total, paid, unpaid, event-wise) for the college.
+- **Parameters:**
+  - Authentication: User (college)
+- **Returns:**
+  - 200: Registration stats object
+  - 403: If not a college
+  - 404: If college not found
+- **Business Logic:**
+  - Aggregates registrations and payment status for all events
+
+#### `GET /api/college/dashboard/analytics/by-fest` — getStatsByFest
+- **Access:** College only (JWT required)
+- **Description:** Get registration and earnings stats grouped by fest.
+- **Parameters:**
+  - Authentication: User (college)
+- **Returns:**
+  - 200: Fest stats object
+  - 403: If not a college
+  - 404: If college not found
+- **Business Logic:**
+  - Aggregates stats for each fest and its events
+
+#### `GET /api/college/dashboard/analytics/by-date` — getStatsByDate
+- **Access:** College only (JWT required)
+- **Description:** Get registration and earnings stats grouped by event date.
+- **Parameters:**
+  - Authentication: User (college)
+- **Returns:**
+  - 200: Date stats object
+  - 403: If not a college
+  - 404: If college not found
+- **Business Logic:**
+  - Aggregates stats for each event date
+
+#### `GET /api/college/dashboard/analytics/top-events` — getTopEvents
+- **Access:** College only (JWT required)
+- **Description:** Get top 5 events by registrations and earnings.
+- **Parameters:**
+  - Authentication: User (college)
+- **Returns:**
+  - 200: `{ topByRegistrations, topByEarnings }`
+  - 403: If not a college
+  - 404: If college not found
+- **Business Logic:**
+  - Sorts events by registrations and earnings
+
+#### `POST /api/college/dashboard/events/{eventId}/registrations/{registrationId}/approve-certificate` — approveCertificate
+- **Access:** College only (JWT required)
+- **Description:** Approve a certificate for a specific registration.
+- **Parameters:**
+  - Path: `eventId`, `registrationId`
+  - Authentication: User (college)
+- **Returns:**
+  - 200: Success message
+  - 403: If not a college
+  - 404: If event or registration not found or not owned by college
+- **Business Logic:**
+  - Sets `certificateApproved` to true for the registration
+
+#### `POST /api/college/dashboard/events/{eventId}/registrations/approve-all-certificates` — approveAllCertificates
+- **Access:** College only (JWT required)
+- **Description:** Approve certificates for all registrations in an event.
+- **Parameters:**
+  - Path: `eventId`
+  - Authentication: User (college)
+- **Returns:**
+  - 200: Success message
+  - 403: If not a college
+  - 404: If event not found or not owned by college
+- **Business Logic:**
+  - Sets `certificateApproved` to true for all registrations in the event
+
+#### `POST /api/college/dashboard/events/{eventId}/registrations/approve-certificates` — approveCertificatesForList
+- **Access:** College only (JWT required)
+- **Description:** Approve certificates for a list of registration IDs in an event.
+- **Parameters:**
+  - Path: `eventId`
+  - Body: `{ registrationIds: [int, ...] }`
+  - Authentication: User (college)
+- **Returns:**
+  - 200: Success message with count
+  - 403: If not a college
+  - 404: If event not found or not owned by college
+- **Business Logic:**
+  - Sets `certificateApproved` to true for each listed registration
 
 ---
 
@@ -628,6 +743,28 @@ graph TD;
 - **Business Logic:**
   - Validates credentials, issues JWT
 
+#### `POST /api/auth/forgot-password` — forgotPassword
+- **Access:** Public
+- **Description:** Send password reset link to email address.
+- **Parameters:**
+  - Body: `ForgotPasswordRequest` (email)
+- **Returns:**
+  - 200: Success message
+  - 400: Email not found
+- **Business Logic:**
+  - Validates email exists, generates reset token, sends email
+
+#### `POST /api/auth/reset-password` — resetPassword
+- **Access:** Public
+- **Description:** Reset password using token from email.
+- **Parameters:**
+  - Body: `ResetPasswordRequest` (token, newPassword)
+- **Returns:**
+  - 200: Success message
+  - 400: Invalid token or expired token
+- **Business Logic:**
+  - Validates token, updates password, deletes token
+
 ---
 
 ### CollegeController
@@ -739,34 +876,64 @@ graph TD;
 - **Authentication:**
     - `POST /api/auth/register` (student/college)
     - `POST /api/auth/login`
+    - `POST /api/auth/forgot-password` (send reset link)
+    - `POST /api/auth/reset-password` (reset password)
 - **Event Management:**
-    - `POST /api/college/events` (create)
-    - `PUT /api/college/events/{id}` (update)
-    - `POST /api/college/events/{id}/poster` (upload poster)
-    - `POST /api/college/events/{id}/poster/moderate` (approve/reject poster)
-    - `GET /api/college/events` (list college events)
+    - `GET /api/events` (list college events)
+    - `POST /api/events` (create event)
+    - `PUT /api/events/{id}` (update event)
+    - `DELETE /api/events/{id}` (delete event)
+    - `POST /api/events/{id}/poster` (upload poster)
+    - `POST /api/events/{id}/poster/approve` (approve poster)
+    - `POST /api/events/{id}/poster/reject` (reject poster)
+    - `DELETE /api/events/{id}/poster` (delete poster)
+    - `GET /api/events/{id}/poster/audit-logs` (audit logs)
+- **Fest Management:**
+    - `GET /api/fests` (list college fests)
+    - `POST /api/fests` (create fest)
+    - `PUT /api/fests/{id}` (update fest)
+    - `DELETE /api/fests/{id}` (delete fest)
 - **Student Event Registration:**
-    - `GET /api/student/events/explore` (explore events)
     - `POST /api/student/events/register` (register for event)
-    - `GET /api/student/events/my` (my events)
+    - `GET /api/student/events/my` (my registrations)
+    - `GET /api/student/events/dashboard/stats` (dashboard stats)
+    - `GET /api/student/events/{eventId}/certificate` (download certificate)
 - **Payments:**
-    - `POST /api/payment/order` (create order)
-    - `POST /api/payment/verify` (verify payment)
-    - `GET /api/payment/history` (payment history)
+    - `POST /api/payments/create-order` (create order)
+    - `POST /api/payments/verify` (verify payment)
 - **Reviews & Feedback:**
-    - `POST /api/review` (submit review)
-    - `GET /api/review/event/{eventId}` (get reviews for event)
-- **Dashboards:**
-    - `GET /api/student/dashboard` (student dashboard)
-    - `GET /api/college/dashboard` (college dashboard)
-- **Media & Audit Logs:**
-    - `POST /api/college/events/{id}/poster` (upload poster)
-    - `GET /api/media/{filename}` (serve static files)
-    - `GET /api/audit/event/{eventId}` (audit logs for event)
-- **Certificates:**
-    - `GET /api/student/certificate/{registrationId}` (download certificate)
+    - `POST /api/events/{eventId}/review` (submit review)
+    - `GET /api/events/{eventId}/review` (get my review)
+    - `GET /api/events/{eventId}/reviews` (get all reviews)
+    - `GET /api/events/{eventId}/rating` (get event rating)
+- **College Dashboard:**
+    - `GET /api/college/dashboard/stats` (overall stats)
+    - `GET /api/college/dashboard/earnings` (earnings breakdown)
+    - `GET /api/college/dashboard/registrations` (registration stats)
+    - `GET /api/college/dashboard/analytics/by-fest` (stats by fest)
+    - `GET /api/college/dashboard/analytics/by-date` (stats by date)
+    - `GET /api/college/dashboard/analytics/top-events` (top events)
+    - `GET /api/college/dashboard/events` (events with stats)
+    - `GET /api/college/dashboard/events/{eventId}/registrations` (event registrations)
+    - `POST /api/college/dashboard/events/{eventId}/registrations/{registrationId}/approve-certificate` (approve certificate)
+    - `POST /api/college/dashboard/events/{eventId}/registrations/approve-all-certificates` (approve all certificates)
+    - `POST /api/college/dashboard/events/{eventId}/registrations/approve-certificates` (approve certificates for list)
+- **College Profile:**
+    - `GET /api/college/profile` (get profile)
+    - `PUT /api/college/profile` (update profile)
+- **Team Management:**
+    - `GET /api/student/teams/event/{eventId}` (teams for event)
+    - `GET /api/student/teams/my` (my teams)
+    - `GET /api/student/teams/{teamId}/members` (team members)
+    - `DELETE /api/student/teams/{teamId}/leave` (leave team)
+- **Explore:**
+    - `GET /api/explore/fests` (explore fests)
+    - `GET /api/explore/events` (explore events)
+- **Event Statistics:**
+    - `GET /api/events/{eventId}/stats` (event stats)
 - **Other:**
     - `GET /api/health` (health check)
+    - `GET /api/protected` (test authentication)
 
 ---
 
@@ -785,22 +952,34 @@ graph TD;
 ---
 
 ## Advanced Features
+- **Authentication & Security:**
+    - JWT-based authentication with role-based access control.
+    - Password reset functionality with email-based token verification.
+    - Secure password hashing and validation.
 - **Media Management:**
     - Poster/banner upload with file validation (type, size).
     - Thumbnail generation for images.
     - Static file serving via `/api/media/{filename}`.
+    - Poster audit logging for moderation tracking.
 - **Payments:**
     - Razorpay integration for order creation and payment verification.
     - Payment status tracking and history.
     - Email receipts for successful payments.
 - **Notifications:**
     - Email notifications for registration, payment, reminders.
+    - Password reset emails with secure tokens.
     - Scheduled event reminders via `EventReminderService`.
 - **Certificates:**
     - PDF certificate generation (OpenPDF) for event participants.
-    - Downloadable via `/api/student/certificate/{registrationId}`.
+    - Certificate approval workflow for colleges.
+    - Downloadable via `/api/student/events/{eventId}/certificate`.
 - **Dashboards:**
-    - Student and college dashboards with stats, analytics, and feedback.
+    - Student and college dashboards with comprehensive stats and analytics.
+    - Revenue tracking and earnings breakdown.
+    - Registration analytics by fest, date, and top events.
+- **Team Management:**
+    - Team creation and management for team events.
+    - Team member management with join/leave functionality.
 
 ---
 
@@ -813,7 +992,11 @@ graph TD;
 
 ### Setup
 1. Clone the repository.
-2. Configure `src/main/resources/application.properties` with your MySQL credentials and other environment variables.
+2. Configure `src/main/resources/application.properties` with your:
+   - MySQL database credentials
+   - Email configuration (SMTP settings for password reset emails)
+   - Razorpay API keys for payments
+   - Frontend URL for password reset links
 3. Build the project:
    ```sh
    mvn clean install
@@ -822,7 +1005,8 @@ graph TD;
    ```sh
    mvn spring-boot:run
    ```
-5. Access API at `http://localhost:8080/api/`
+5. Access API at `http://localhost:8081/api/`
+6. Access Swagger UI at `http://localhost:8081/swagger-ui/index.html`
 
 ### Testing
 - Use the provided Postman collection (`Unbound.postman_collection.json`) for API testing.
