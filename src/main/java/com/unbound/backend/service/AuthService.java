@@ -13,6 +13,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.beans.factory.annotation.Value;
+import com.unbound.backend.entity.PasswordResetToken;
+import com.unbound.backend.repository.PasswordResetTokenRepository;
+
+
+
 import java.util.Optional;
 
 @Service
@@ -94,4 +100,54 @@ public class AuthService {
         String token = jwtService.generateToken(user.getEmail(), user.getRole().name());
         return new AuthResponse(token, user.getRole().name(), user.getEmail(), sname, cname);
     }
+    
+    @Value("${frontend.reset-password-url}")
+    private String resetPasswordBaseUrl;
+    
+    @Autowired
+    private PasswordResetTokenRepository passwordResetTokenRepository;
+    
+    @Autowired
+    private EmailService emailService;
+    
+    public void sendResetPasswordLink(String email) {
+        Optional<User> userOpt = userRepository.findByEmail(email);
+    
+        if (userOpt.isEmpty()) {
+            throw new RuntimeException("Email not found");
+        }
+    
+        User user = userOpt.get();
+    
+        String token = java.util.UUID.randomUUID().toString();
+        PasswordResetToken resetToken = PasswordResetToken.builder()
+                .token(token)
+                .user(user)
+                .expiryDate(LocalDateTime.now().plusMinutes(15))
+                .build();
+    
+        passwordResetTokenRepository.save(resetToken);
+    
+        String resetLink = resetPasswordBaseUrl + "?token=" + token;
+        String subject = "Password Reset Request";
+        String body = "Hi,\n\nTo reset your password, please click the link below:\n" + resetLink + "\n\nIf you did not request this, ignore this email.";
+    
+        emailService.sendEmail(user.getEmail(), subject, body);
+    }
+
+    public void resetPassword(String token, String newPassword) {
+        PasswordResetToken resetToken = passwordResetTokenRepository.findByToken(token)
+                .orElseThrow(() -> new RuntimeException("Invalid token"));
+    
+        if (resetToken.getExpiryDate().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Token expired");
+        }
+    
+        User user = resetToken.getUser();
+        user.setPassword(passwordService.hashPassword(newPassword));
+        userRepository.save(user);
+    
+        passwordResetTokenRepository.delete(resetToken);
+    }
+
 } 
