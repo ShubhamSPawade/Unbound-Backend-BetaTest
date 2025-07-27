@@ -49,8 +49,12 @@ public class PaymentController {
     @PostMapping("/create-order-for-event")
     public ResponseEntity<?> createOrderForEvent(@AuthenticationPrincipal User user, @RequestBody Map<String, Object> req) {
         try {
-            Integer eventId = (Integer) req.get("eventId");
-            Integer amount = (Integer) req.get("amount");
+            // added this code: safe parsing for eventId and amount
+            Object eventIdObj = req.get("eventId");
+            Object amountObj = req.get("amount");
+            Integer eventId = eventIdObj instanceof Integer ? (Integer) eventIdObj : Integer.parseInt(eventIdObj.toString());
+            Integer amount = amountObj instanceof Integer ? (Integer) amountObj : Integer.parseInt(amountObj.toString());
+            // end added code
             String currency = (String) req.getOrDefault("currency", "INR");
             String receiptEmail = (String) req.get("receiptEmail");
             Event event = eventRepository.findById(eventId).orElse(null);
